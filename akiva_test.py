@@ -18,7 +18,7 @@ def EWO(dataframe, ema_length=5, ema2_length=35):
     return emadif
 
 
-class BigZ04_TSL4(IStrategy):
+class akiva_test(IStrategy):
     INTERFACE_VERSION = 2
 
     minimal_roi = {
