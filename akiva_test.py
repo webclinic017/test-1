@@ -9,50 +9,6 @@ from freqtrade.strategy import merge_informative_pair, CategoricalParameter, Dec
 from functools import reduce
 
 
-###########################################################################################################
-##                   BigZ04_TSL4 by Perkmeister, based on BigZ04 by ilya                                 ##
-##                                                                                                       ##
-##    https://github.com/i1ya/freqtrade-strategies                                                       ##
-##    The stratagy most inspired by iterativ (authors of the CombinedBinHAndClucV6)                      ##
-##                                                                                                       ##
-##    This is a modified version of BigZ04 that uses custom_stoploss() to implement a hard stoploss      ##
-##    of 8%, and to replace the roi table with a trailing stoploss to extract more profit when prices    ##
-##    start to rise above a profit threshold. It's quite simple and crude and is a 'first stab' at the   ##
-##    hard stoploss problem, use live at your own risk ;). The sell signals from SMAOffsetProtectOptV1   ##
-##    have been added but are currently disabled as had no benefit.                                      ##
-##                                                                                                       ##
-###########################################################################################################
-##     The main point of this strat is:                                                                  ##
-##        -  make drawdown as low as possible                                                            ##
-##        -  buy at dip                                                                                  ##
-##        -  soft check if market if rising                                                              ##
-##        -  hard check is market if fallen                                                              ##
-##        -  11 buy signals                                                                              ##
-##        -  hard stoploss function preventing from big fall                                             ##
-##        -  trailing stoploss while in profit                                                           ##
-##        -  no sell signal. Uses custom stoploss                                                        ##
-##                                                                                                       ##
-###########################################################################################################
-##                 GENERAL RECOMMENDATIONS                                                               ##
-##                                                                                                       ##
-##   For optimal performance, suggested to use between 2 and 4 open trades, with unlimited stake.        ##
-##                                                                                                       ##
-##   As a pairlist it is recommended to use a static pairlst such as iterativ's orginal:                 ##
-##   https://discord.com/channels/700048804539400213/702584639063064586/838038600368783411               ## 
-##                                                                                                       ##
-##   Ensure that you don't override any variables in your config.json. Especially                        ##
-##   the timeframe (must be 5m).                                                                         ##
-##                                                                                                       ##
-##                                                                                                       ##
-###########################################################################################################
-##               DONATIONS 2 @iterativ (author of the original strategy)                                 ##
-##                                                                                                       ##
-##   Absolutely not required. However, will be accepted as a token of appreciation.                      ##
-##                                                                                                       ##
-##   BTC: bc1qvflsvddkmxh7eqhc4jyu5z5k6xcw3ay8jl49sk                                                     ##
-##   ETH: 0x83D3cFb8001BDC5d2211cBeBB8cB3461E5f7Ec91                                                     ##
-##                                                                                                       ##
-###########################################################################################################
 
 def EWO(dataframe, ema_length=5, ema2_length=35):
     df = dataframe.copy()
