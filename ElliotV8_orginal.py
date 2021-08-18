@@ -56,7 +56,7 @@ class ElliotV8_original(IStrategy):
          "60": 0.02,
          "70": 0.015,
          "90": 0.01,
-         "120": 0.005,
+         "120": 0.005
     }
 
     # Stoploss:
