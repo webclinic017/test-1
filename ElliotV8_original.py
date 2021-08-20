@@ -92,7 +92,7 @@ class ElliotV8_original(IStrategy):
     # Sell signal
     use_sell_signal = True
     sell_profit_only = false
-    sell_profit_offset = 0.001
+    sell_profit_offset = 0.01
     ignore_roi_if_buy_signal = False
 
     ## Optional order time in force.
