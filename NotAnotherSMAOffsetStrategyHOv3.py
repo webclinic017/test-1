@@ -158,7 +158,7 @@ class NotAnotherSMAOffsetStrategyHOv3(IStrategy):
     }
 
     # Optimal timeframe for the strategy
-    timeframe = '5m'
+    timeframe = '1'
     inf_1h = '1h'
 
     process_only_new_candles = True
