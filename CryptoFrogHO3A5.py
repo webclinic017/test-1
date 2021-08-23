@@ -15,7 +15,7 @@ from freqtrade.strategy import IStrategy, merge_informative_pair, stoploss_from_
 import freqtrade.vendor.qtpylib.indicators as qtpylib
 from freqtrade.exchange import timeframe_to_minutes
 from freqtrade.persistence import Trade
-from skopt.space import Dimension
+from freqtrade.optimize.space import Dimension
 
 class CryptoFrogHO3A5(IStrategy):
     # Sell hyperspace params:
