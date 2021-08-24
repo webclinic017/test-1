@@ -98,7 +98,7 @@ def EWO(dataframe, ema_length=5, ema2_length=35):
     return emadif
 
 
-class NotAnotherSMAOffsetStrategyHOv3(IStrategy):
+class NotAnotherSMAOffsetStrategyHOv3_b(IStrategy):
     INTERFACE_VERSION = 2
 
     # ROI table:
