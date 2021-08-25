@@ -353,6 +353,8 @@ class NotAnotherSMAOffsetStrategyHOv3_akiva(IStrategy):
             )
 
         )
+        
+        dataframe['ema_offset_sell'] = ta.EMA(dataframe, int(self.base_nb_candles_sell.value)) *self.high_offset_ema.value
 
         if conditions:
             dataframe.loc[
