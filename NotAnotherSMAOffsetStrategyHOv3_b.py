@@ -110,7 +110,7 @@ class NotAnotherSMAOffsetStrategyHOv3_b(IStrategy):
     }
 
     # Stoploss:
-    stoploss = -0.03
+    stoploss = -0.041
 
     # SMAOffset
     base_nb_candles_buy = IntParameter(
