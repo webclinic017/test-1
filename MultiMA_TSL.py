@@ -72,8 +72,8 @@ class MultiMA_TSL(IStrategy):
     # Trailing stoploss (not used)
     trailing_stop = True
     trailing_only_offset_is_reached = True
-    trailing_stop_positive = 0.005
-    trailing_stop_positive_offset = 0.025
+    trailing_stop_positive = 0.001
+    trailing_stop_positive_offset = 0.018
 
     use_custom_stoploss = True
 
