@@ -14,6 +14,7 @@ from datetime import datetime, timedelta
 from freqtrade.persistence import Trade
 from freqtrade.strategy import stoploss_from_open, merge_informative_pair, DecimalParameter, IntParameter, CategoricalParameter
 import technical.indicators as ftt
+from freqtrade.exchange import timeframe_to_prev_date
 
 # @Rallipanos
 
