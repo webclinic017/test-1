@@ -110,7 +110,7 @@ class NotAnotherSMAOffsetStrategyHOv3_b(IStrategy):
     }
 
     # Stoploss:
-    stoploss = -0.03
+    stoploss = -0.04
 
     # SMAOffset
     base_nb_candles_buy = IntParameter(
@@ -141,8 +141,8 @@ class NotAnotherSMAOffsetStrategyHOv3_b(IStrategy):
 
     # Trailing stop:
     trailing_stop = True
-    trailing_stop_positive = 0.005
-    trailing_stop_positive_offset = 0.025
+    trailing_stop_positive = 0.001
+    trailing_stop_positive_offset = 0.018
     trailing_only_offset_is_reached = True
 
     # Sell signal
