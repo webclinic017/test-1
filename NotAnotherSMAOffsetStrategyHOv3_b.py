@@ -141,14 +141,14 @@ class NotAnotherSMAOffsetStrategyHOv3_b(IStrategy):
 
     # Trailing stop:
     trailing_stop = True
-    trailing_stop_positive = 0.005
-    trailing_stop_positive_offset = 0.025
+    trailing_stop_positive = 0.001
+    trailing_stop_positive_offset = 0.018
     trailing_only_offset_is_reached = True
 
     # Sell signal
     use_sell_signal = True
     sell_profit_only = False
-    sell_profit_offset = 0.01
+    sell_profit_offset = 0.001
     ignore_roi_if_buy_signal = False
 
     # Optional order time in force.
