@@ -88,6 +88,7 @@ sell_params = {
     "base_nb_candles_sell": 16,
     "high_offset": 1.054,
     "high_offset_2": 1.018,  # value loaded from strategy
+    "high_offset_ema": 1.004,
 }
 
 
@@ -114,6 +115,7 @@ class NotAnotherSMAOffsetStrategyHOv3_akiva(IStrategy):
     stoploss = -0.3
 
     # SMAOffset
+    high_offset_ema = DecimalParameter(0.99, 1.1, default=1.012, load=True, space='sell', optimize=False)
     base_nb_candles_buy = IntParameter(
         2, 20, default=buy_params['base_nb_candles_buy'], space='buy', optimize=False)
     base_nb_candles_sell = IntParameter(
@@ -353,7 +355,7 @@ class NotAnotherSMAOffsetStrategyHOv3_akiva(IStrategy):
             )
 
         )
-        
+
         dataframe['ema_offset_sell'] = ta.EMA(dataframe, int(self.base_nb_candles_sell.value)) *self.high_offset_ema.value
 
         if conditions:
