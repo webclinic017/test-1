@@ -112,7 +112,7 @@ class NotAnotherSMAOffsetStrategyHOv3_akiva(IStrategy):
     }
 
     # Stoploss:
-    stoploss = -0.3
+    stoploss = -0.04
 
     # SMAOffset
     high_offset_ema = DecimalParameter(0.99, 1.1, default=1.012, load=True, space='sell', optimize=False)
@@ -144,14 +144,14 @@ class NotAnotherSMAOffsetStrategyHOv3_akiva(IStrategy):
 
     # Trailing stop:
     trailing_stop = True
-    trailing_stop_positive = 0.005
-    trailing_stop_positive_offset = 0.025
+    trailing_stop_positive = 0.001
+    trailing_stop_positive_offset = 0.018
     trailing_only_offset_is_reached = True
 
     # Sell signal
     use_sell_signal = True
     sell_profit_only = False
-    sell_profit_offset = 0.01
+    sell_profit_offset = 0.001
     ignore_roi_if_buy_signal = False
 
     # Optional order time in force.
