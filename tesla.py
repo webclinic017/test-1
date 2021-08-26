@@ -226,7 +226,7 @@ class tesla(IStrategy):
                                         default=buy_params['profit_threshold'], space='buy', optimize=True)
 
 
-    pHSL = DecimalParameter(-0.10, -0.002, default=-0.04, decimals=3,
+    pHSL = DecimalParameter(-0.10, -0.002, default=-0.012, decimals=3,
                             space='sell', optimize=False, load=True)
     # profit threshold 1, trigger point, SL_1 is used
     pPF_1 = DecimalParameter(0.008, 0.020, default=0.016, decimals=3,
