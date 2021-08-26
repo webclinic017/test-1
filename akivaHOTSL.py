@@ -189,7 +189,7 @@ class akivaHOTSL(IStrategy):
     def custom_stoploss(self, pair: str, trade: 'Trade', current_time: datetime,
                         current_rate: float, current_profit: float, **kwargs) -> float:
 
-       if (current_profit > 0.3):
+        if (current_profit > 0.3):
             return 0.05
         elif (current_profit > 0.2):
             return 0.04
