@@ -101,7 +101,7 @@ def EWO(dataframe, ema_length=5, ema2_length=35):
     return emadif
 
 
-class akiva5(IStrategy):
+class akivaHOTSL(IStrategy):
     INTERFACE_VERSION = 2
 
     # ROI table:
