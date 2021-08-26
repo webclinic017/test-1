@@ -151,7 +151,7 @@ class tesla(IStrategy):
     }
 
     # Stoploss:
-    stoploss = -0.15
+    stoploss = -0.04
 
     # SMAOffset
     high_offset_ema = DecimalParameter(0.99, 1.1, default=1.012, load=True, space='sell', optimize=False)
