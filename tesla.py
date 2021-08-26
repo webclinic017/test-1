@@ -122,7 +122,7 @@ sell_params = {
     "sell_trail_profit_min_1": 0.15,  # value loaded from strategy
     "sell_trail_profit_min_2": 0.01,  # value loaded from strategy
     "sell_trail_profit_min_3": 0.05,  # value loaded from strategy
-    "pHSL": -0.04,
+    "pHSL": -0.012,
     "pPF_1": 0.016,
     "pPF_2": 0.024,
     "pSL_1": 0.014,
@@ -151,7 +151,7 @@ class tesla(IStrategy):
     }
 
     # Stoploss:
-    stoploss = -0.99
+    stoploss = -0.04
 
     # SMAOffset
     high_offset_ema = DecimalParameter(0.99, 1.1, default=1.012, load=True, space='sell', optimize=False)
@@ -226,7 +226,7 @@ class tesla(IStrategy):
                                         default=buy_params['profit_threshold'], space='buy', optimize=True)
 
 
-    pHSL = DecimalParameter(-0.200, -0.040, default=-0.15, decimals=3,
+    pHSL = DecimalParameter(-0.10, -0.002, default=-0.04, decimals=3,
                             space='sell', optimize=False, load=True)
     # profit threshold 1, trigger point, SL_1 is used
     pPF_1 = DecimalParameter(0.008, 0.020, default=0.016, decimals=3,
@@ -243,7 +243,7 @@ class tesla(IStrategy):
 
 
     # Trailing stop:
-    trailing_stop = False
+    trailing_stop = True
     trailing_stop_positive = 0.001
     trailing_stop_positive_offset = 0.016
     trailing_only_offset_is_reached = True
@@ -266,7 +266,7 @@ class tesla(IStrategy):
 
     process_only_new_candles = True
     startup_candle_count = 200
-    use_custom_stoploss = True
+    use_custom_stoploss = False
 
     plot_config = {
         'main_plot': {
