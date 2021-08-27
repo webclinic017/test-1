@@ -1,5 +1,6 @@
 # --- Do not remove these libs ---
 # --- Do not remove these libs ---
+from logging import FATAL
 from freqtrade.strategy.interface import IStrategy
 from typing import Dict, List
 from functools import reduce
@@ -14,123 +15,59 @@ from datetime import datetime, timedelta
 from freqtrade.persistence import Trade
 from freqtrade.strategy import stoploss_from_open, merge_informative_pair, DecimalParameter, IntParameter, CategoricalParameter
 import technical.indicators as ftt
-from freqtrade.exchange import timeframe_to_prev_date
 
-# @Rallipanos
 
-# # Buy hyperspace params:
-# buy_params = {
-#     "base_nb_candles_buy": 14,
-#     "ewo_high": 2.327,
-#     "ewo_high_2": -2.327,
-#     "ewo_low": -20.988,
-#     "low_offset": 0.975,
-#     "low_offset_2": 0.955,
-#     "rsi_buy": 69
-# }
-
-# # Buy hyperspace params:
-# buy_params = {
-#     "base_nb_candles_buy": 18,
-#     "ewo_high": 3.422,
-#     "ewo_high_2": -3.436,
-#     "ewo_low": -8.562,
-#     "low_offset": 0.966,
-#     "low_offset_2": 0.959,
-#     "rsi_buy": 66,
-# }
-
-# # # Sell hyperspace params:
-# # sell_params = {
-# #     "base_nb_candles_sell": 17,
-# #     "high_offset": 0.997,
-# #     "high_offset_2": 1.01,
-# # }
-
-# # Sell hyperspace params:
-# sell_params = {
-#     "base_nb_candles_sell": 7,
-#     "high_offset": 1.014,
-#     "high_offset_2": 0.995,
-# }
-
-# # Buy hyperspace params:
-# buy_params = {
-#     "ewo_high_2": -5.642,
-#     "low_offset_2": 0.951,
-#     "rsi_buy": 54,
-#     "base_nb_candles_buy": 16,  # value loaded from strategy
-#     "ewo_high": 3.422,  # value loaded from strategy
-#     "ewo_low": -8.562,  # value loaded from strategy
-#     "low_offset": 0.966,  # value loaded from strategy
-# }
-
-# # Sell hyperspace params:
-# sell_params = {
-#     "base_nb_candles_sell": 8,
-#     "high_offset_2": 1.002,
-#     "high_offset": 1.014,  # value loaded from strategy
-# }
 
 # Buy hyperspace params:
 buy_params = {
-    "base_nb_candles_buy": 8,
-    "ewo_high": 2.403,
-    "ewo_high_2": -5.585,
-    "ewo_low": -14.378,
-    "lookback_candles": 3,
-    "low_offset": 0.984,
-    "low_offset_2": 0.942,
-    "profit_threshold": 1.008,
-    "rsi_buy": 72
+    "low_offset": 0.981,
+    "base_nb_candles_buy": 8,  # value loaded from strategy
+    "ewo_high": 3.553,  # value loaded from strategy
+    "ewo_high_2": -5.585,  # value loaded from strategy
+    "ewo_low": -14.378,  # value loaded from strategy
+    "lookback_candles": 32,  # value loaded from strategy
+    "low_offset_2": 0.942,  # value loaded from strategy
+    "profit_threshold": 1.037,  # value loaded from strategy
+    "rsi_buy": 78,  # value loaded from strategy
+    "rsi_fast_buy": 37,  # value loaded from strategy
 }
 
 # Sell hyperspace params:
 sell_params = {
-     #"base_nb_candles_sell": 16,
-     #"high_offset": 1.084,
-     #"high_offset_2": 1.401,
-     #"high_offset_ema": 1.012,  # value loaded from strategy
-    "base_nb_candles_sell": 21,
-    "high_offset": 0.999,
-    "high_offset_2": 1.179,
-    "high_offset_ema": 1.056,
-    "sell_custom_dec_profit_1": 0.05,  # value loaded from strategy
-    "sell_custom_dec_profit_2": 0.07,  # value loaded from strategy
-    "sell_custom_profit_0": 0.009,  # value loaded from strategy
-    "sell_custom_profit_1": 0.010,  # value loaded from strategy
-    "sell_custom_profit_2": 0.011,  # value loaded from strategy
-    "sell_custom_profit_3": 0.012,  # value loaded from strategy
-    "sell_custom_profit_4": 0.013,  # value loaded from strategy
-    "sell_custom_profit_under_rel_1": 0.020,  # value loaded from strategy
-    "sell_custom_profit_under_rsi_diff_1": 4.4,  # value loaded from strategy
-    "sell_custom_rsi_0": 33.0,  # value loaded from strategy
-    "sell_custom_rsi_1": 38.0,  # value loaded from strategy
-    "sell_custom_rsi_2": 43.0,  # value loaded from strategy
-    "sell_custom_rsi_3": 48.0,  # value loaded from strategy
-    "sell_custom_rsi_4": 50.0,  # value loaded from strategy
-    "sell_custom_stoploss_under_rel_1": 0.004,  # value loaded from strategy
-    "sell_custom_stoploss_under_rsi_diff_1": 8.0,  # value loaded from strategy
-    "sell_custom_under_profit_1": 0.01,  # value loaded from strategy
-    "sell_custom_under_profit_2": 0.02,  # value loaded from strategy
-    "sell_custom_under_profit_3": 0.3,  # value loaded from strategy
-    "sell_custom_under_rsi_1": 56.0,  # value loaded from strategy
-    "sell_custom_under_rsi_2": 60.0,  # value loaded from strategy
-    "sell_custom_under_rsi_3": 62.0,  # value loaded from strategy
-    "sell_trail_down_1": 0.18,  # value loaded from strategy
-    "sell_trail_down_2": 0.14,  # value loaded from strategy
-    "sell_trail_down_3": 0.01,  # value loaded from strategy
-    "sell_trail_profit_max_1": 0.46,  # value loaded from strategy
-    "sell_trail_profit_max_2": 0.12,  # value loaded from strategy
-    "sell_trail_profit_max_3": 0.1,  # value loaded from strategy
-    "sell_trail_profit_min_1": 0.15,  # value loaded from strategy
-    "sell_trail_profit_min_2": 0.01,  # value loaded from strategy
-    "sell_trail_profit_min_3": 0.05,  # value loaded from strategy
-    "pHSL": -0.012,
-    "pPF_1": 0.016,
-    "pPF_2": 0.024,
-    "pSL_1": 0.014,
-    "pSL_2": 0.022
+        "sell_custom_dec_profit_1": 0.002,
+        "sell_custom_dec_profit_2": 0.162,
+        "sell_custom_profit_0": 0.041,
+        "sell_custom_profit_1": 0.02,
+        "sell_custom_profit_2": 0.084,
+        "sell_custom_profit_3": 0.176,
+        "sell_custom_profit_4": 0.511,
+        "sell_custom_profit_under_rel_1": 0.015,
+        "sell_custom_profit_under_rsi_diff_1": 1.337,
+        "sell_custom_rsi_0": 31.342,
+        "sell_custom_rsi_1": 36.57,
+        "sell_custom_rsi_2": 49.69,
+        "sell_custom_rsi_3": 47.78,
+        "sell_custom_rsi_4": 42.64,
+        "sell_custom_stoploss_under_rel_1": 0.015,
+        "sell_custom_stoploss_under_rsi_diff_1": 12.341,
+        "sell_custom_under_profit_1": 0.081,
+        "sell_custom_under_profit_2": 0.078,
+        "sell_custom_under_profit_3": 0.045,
+        "sell_custom_under_rsi_1": 45.8,
+        "sell_custom_under_rsi_2": 62.8,
+        "sell_custom_under_rsi_3": 51.6,
+        "sell_trail_down_1": 0.114,
+        "sell_trail_down_2": 0.146,
+        "sell_trail_down_3": 0.015,
+        "sell_trail_profit_max_1": 0.23,
+        "sell_trail_profit_max_2": 0.22,
+        "sell_trail_profit_max_3": 0.11,
+        "sell_trail_profit_min_1": 0.249,
+        "sell_trail_profit_min_2": 0.088,
+        "sell_trail_profit_min_3": 0.021,
+        "base_nb_candles_sell": 16,  # value loaded from strategy
+        "high_offset": 1.097,  # value loaded from strategy
+        "high_offset_2": 1.472,  # value loaded from strategy
 }
 
 
@@ -142,7 +79,7 @@ def EWO(dataframe, ema_length=5, ema2_length=35):
     return emadif
 
 
-class tesla(IStrategy):
+class tesla3(IStrategy):
     INTERFACE_VERSION = 2
 
     # ROI table:
@@ -150,72 +87,76 @@ class tesla(IStrategy):
         # "0": 0.283,
         # "40": 0.086,
         # "99": 0.036,
-        "0": 0.10,
+        "0": 10,
         
     }
 
     # Stoploss:
-    stoploss = -0.08
+    stoploss = -0.15
 
     # SMAOffset
-    high_offset_ema = DecimalParameter(0.99, 1.1, default=1.056, load=True, space='sell', optimize=True)
     base_nb_candles_buy = IntParameter(
         2, 20, default=buy_params['base_nb_candles_buy'], space='buy', optimize=False)
     base_nb_candles_sell = IntParameter(
-        10, 40, default=sell_params['base_nb_candles_sell'], space='sell', optimize=True)
+        2, 25, default=sell_params['base_nb_candles_sell'], space='sell', optimize=False)
     low_offset = DecimalParameter(
         0.9, 0.99, default=buy_params['low_offset'], space='buy', optimize=False)
     low_offset_2 = DecimalParameter(
         0.9, 0.99, default=buy_params['low_offset_2'], space='buy', optimize=False)
     high_offset = DecimalParameter(
-        0.95, 1.1, default=sell_params['high_offset'], space='sell', optimize=True)
+        0.95, 1.1, default=sell_params['high_offset'], space='sell', optimize=False)
     high_offset_2 = DecimalParameter(
-        0.99, 1.5, default=sell_params['high_offset_2'], space='sell', optimize=True)
+        0.99, 1.5, default=sell_params['high_offset_2'], space='sell', optimize=False)
 
+    sell_custom_profit_0 = DecimalParameter(0.001, 0.1, default=sell_params['sell_custom_profit_0'], space='sell', decimals=3, optimize=True, load=True)
+    sell_custom_rsi_0 = DecimalParameter(30.0, 40.0, default=sell_params['sell_custom_rsi_0'], space='sell', decimals=3, optimize=True, load=True)
+    sell_custom_profit_1 = DecimalParameter(0.005, 0.1, default=sell_params['sell_custom_profit_1'], space='sell', decimals=3, optimize=True, load=True)
+    sell_custom_rsi_1 = DecimalParameter(30.0, 50.0, default=sell_params['sell_custom_rsi_1'], space='sell', decimals=2, optimize=True, load=True)
+    sell_custom_profit_2 = DecimalParameter(0.007, 0.1, default=sell_params['sell_custom_profit_2'], space='sell', decimals=3, optimize=True, load=True)
+    sell_custom_rsi_2 = DecimalParameter(34.0, 50.0, default=sell_params['sell_custom_rsi_2'], space='sell', decimals=2, optimize=True, load=True)
+    sell_custom_profit_3 = DecimalParameter(0.009, 0.30, default=sell_params['sell_custom_profit_3'], space='sell', decimals=3, optimize=True, load=True)
+    sell_custom_rsi_3 = DecimalParameter(38.0, 55.0, default=sell_params['sell_custom_rsi_3'], space='sell', decimals=2, optimize=True, load=True)
+    sell_custom_profit_4 = DecimalParameter(0.01, 0.6, default=sell_params['sell_custom_profit_4'], space='sell', decimals=3, optimize=True, load=True)
+    sell_custom_rsi_4 = DecimalParameter(40.0, 58.0, default=sell_params['sell_custom_under_profit_1'], space='sell', decimals=2, optimize=True, load=True)
 
-    sell_custom_profit_0 = DecimalParameter(0.001, 0.1, default=sell_params['sell_custom_profit_0'], space='sell', decimals=3, optimize=False, load=True)
-    sell_custom_rsi_0 = DecimalParameter(30.0, 40.0, default=sell_params['sell_custom_rsi_0'], space='sell', decimals=3, optimize=False, load=True)
-    sell_custom_profit_1 = DecimalParameter(0.005, 0.1, default=sell_params['sell_custom_profit_1'], space='sell', decimals=3, optimize=False, load=True)
-    sell_custom_rsi_1 = DecimalParameter(30.0, 50.0, default=sell_params['sell_custom_rsi_1'], space='sell', decimals=2, optimize=False, load=True)
-    sell_custom_profit_2 = DecimalParameter(0.007, 0.1, default=sell_params['sell_custom_profit_2'], space='sell', decimals=3, optimize=False, load=True)
-    sell_custom_rsi_2 = DecimalParameter(34.0, 50.0, default=sell_params['sell_custom_rsi_2'], space='sell', decimals=2, optimize=False, load=True)
-    sell_custom_profit_3 = DecimalParameter(0.009, 0.30, default=sell_params['sell_custom_profit_3'], space='sell', decimals=3, optimize=False, load=True)
-    sell_custom_rsi_3 = DecimalParameter(38.0, 55.0, default=sell_params['sell_custom_rsi_3'], space='sell', decimals=2, optimize=False, load=True)
-    sell_custom_profit_4 = DecimalParameter(0.01, 0.6, default=sell_params['sell_custom_profit_4'], space='sell', decimals=3, optimize=False, load=True)
-    sell_custom_rsi_4 = DecimalParameter(40.0, 58.0, default=sell_params['sell_custom_under_profit_1'], space='sell', decimals=2, optimize=False, load=True)
+    sell_custom_under_profit_1 = DecimalParameter(0.001, 0.10, default=sell_params['sell_custom_under_profit_1'], space='sell', decimals=3, optimize=True, load=True)
+    sell_custom_under_rsi_1 = DecimalParameter(36.0, 60.0, default=sell_params['sell_custom_under_rsi_1'], space='sell', decimals=1, optimize=True, load=True)
+    sell_custom_under_profit_2 = DecimalParameter(0.001, 0.10, default=sell_params['sell_custom_under_profit_2'], space='sell', decimals=3, optimize=True, load=True)
+    sell_custom_under_rsi_2 = DecimalParameter(46.0, 66.0, default=sell_params['sell_custom_under_rsi_2'], space='sell', decimals=1, optimize=True, load=True)
+    sell_custom_under_profit_3 = DecimalParameter(0.001, 0.10, default=sell_params['sell_custom_under_profit_3'], space='sell', decimals=3, optimize=True, load=True)
+    sell_custom_under_rsi_3 = DecimalParameter(50.0, 68.0, default=sell_params['sell_custom_under_rsi_3'], space='sell', decimals=1, optimize=True, load=True)
 
-    sell_custom_under_profit_1 = DecimalParameter(0.001, 0.10, default=sell_params['sell_custom_under_profit_1'], space='sell', decimals=3, optimize=False, load=True)
-    sell_custom_under_rsi_1 = DecimalParameter(36.0, 60.0, default=sell_params['sell_custom_under_rsi_1'], space='sell', decimals=1, optimize=False, load=True)
-    sell_custom_under_profit_2 = DecimalParameter(0.001, 0.10, default=sell_params['sell_custom_under_profit_2'], space='sell', decimals=3, optimize=False, load=True)
-    sell_custom_under_rsi_2 = DecimalParameter(46.0, 66.0, default=sell_params['sell_custom_under_rsi_2'], space='sell', decimals=1, optimize=False, load=True)
-    sell_custom_under_profit_3 = DecimalParameter(0.001, 0.10, default=sell_params['sell_custom_under_profit_3'], space='sell', decimals=3, optimize=False, load=True)
-    sell_custom_under_rsi_3 = DecimalParameter(50.0, 68.0, default=sell_params['sell_custom_under_rsi_3'], space='sell', decimals=1, optimize=False, load=True)
+    sell_custom_dec_profit_1 = DecimalParameter(0.001, 0.10, default=sell_params['sell_custom_dec_profit_1'], space='sell', decimals=3, optimize=True, load=True)
+    sell_custom_dec_profit_2 = DecimalParameter(0.05, 0.2, default=sell_params['sell_custom_dec_profit_2'], space='sell', decimals=3, optimize=True, load=True)
 
-    sell_custom_dec_profit_1 = DecimalParameter(0.001, 0.10, default=sell_params['sell_custom_dec_profit_1'], space='sell', decimals=3, optimize=False, load=True)
-    sell_custom_dec_profit_2 = DecimalParameter(0.05, 0.2, default=sell_params['sell_custom_dec_profit_2'], space='sell', decimals=3, optimize=False, load=True)
+    sell_trail_profit_min_1 = DecimalParameter(0.001, 0.25, default=sell_params['sell_trail_profit_min_1'], space='sell', decimals=3, optimize=True, load=True)
+    sell_trail_profit_max_1 = DecimalParameter(0.03, 0.5, default=sell_params['sell_trail_profit_max_1'], space='sell', decimals=2, optimize=True, load=True)
+    sell_trail_down_1 = DecimalParameter(0.04, 0.2, default=sell_params['sell_trail_down_1'], space='sell', decimals=3, optimize=True, load=True)
 
-    sell_trail_profit_min_1 = DecimalParameter(0.001, 0.25, default=sell_params['sell_trail_profit_min_1'], space='sell', decimals=3, optimize=False, load=True)
-    sell_trail_profit_max_1 = DecimalParameter(0.03, 0.5, default=sell_params['sell_trail_profit_max_1'], space='sell', decimals=2, optimize=False, load=True)
-    sell_trail_down_1 = DecimalParameter(0.04, 0.2, default=sell_params['sell_trail_down_1'], space='sell', decimals=3, optimize=False, load=True)
+    sell_trail_profit_min_2 = DecimalParameter(0.004, 0.1, default=sell_params['sell_trail_profit_min_2'], space='sell', decimals=3, optimize=True, load=True)
+    sell_trail_profit_max_2 = DecimalParameter(0.08, 0.25, default=sell_params['sell_trail_profit_max_2'], space='sell', decimals=2, optimize=True, load=True)
+    sell_trail_down_2 = DecimalParameter(0.04, 0.2, default=sell_params['sell_trail_down_2'], space='sell', decimals=3, optimize=True, load=True)
 
-    sell_trail_profit_min_2 = DecimalParameter(0.004, 0.1, default=sell_params['sell_trail_profit_min_2'], space='sell', decimals=3, optimize=False, load=True)
-    sell_trail_profit_max_2 = DecimalParameter(0.08, 0.25, default=sell_params['sell_trail_profit_max_2'], space='sell', decimals=2, optimize=False, load=True)
-    sell_trail_down_2 = DecimalParameter(0.04, 0.2, default=sell_params['sell_trail_down_2'], space='sell', decimals=3, optimize=False, load=True)
+    sell_trail_profit_min_3 = DecimalParameter(0.006, 0.1, default=sell_params['sell_trail_profit_min_3'], space='sell', decimals=3, optimize=True, load=True)
+    sell_trail_profit_max_3 = DecimalParameter(0.08, 0.16, default=sell_params['sell_trail_profit_max_3'], space='sell', decimals=2, optimize=True, load=True)
+    sell_trail_down_3 = DecimalParameter(0.01, 0.04, default=sell_params['sell_trail_down_3'], space='sell', decimals=3, optimize=True, load=True)
 
-    sell_trail_profit_min_3 = DecimalParameter(0.006, 0.1, default=sell_params['sell_trail_profit_min_3'], space='sell', decimals=3, optimize=False, load=True)
-    sell_trail_profit_max_3 = DecimalParameter(0.08, 0.16, default=sell_params['sell_trail_profit_max_3'], space='sell', decimals=2, optimize=False, load=True)
-    sell_trail_down_3 = DecimalParameter(0.01, 0.04, default=sell_params['sell_trail_down_3'], space='sell', decimals=3, optimize=False, load=True)
+    sell_custom_profit_under_rel_1 = DecimalParameter(0.01, 0.04, default=sell_params['sell_custom_profit_under_rel_1'], space='sell', optimize=True, load=True)
+    sell_custom_profit_under_rsi_diff_1 = DecimalParameter(0.0, 20.0, default=sell_params['sell_custom_profit_under_rsi_diff_1'], space='sell', optimize=True, load=True)
 
-    sell_custom_profit_under_rel_1 = DecimalParameter(0.01, 0.04, default=sell_params['sell_custom_profit_under_rel_1'], space='sell', optimize=False, load=True)
-    sell_custom_profit_under_rsi_diff_1 = DecimalParameter(0.0, 20.0, default=sell_params['sell_custom_profit_under_rsi_diff_1'], space='sell', optimize=False, load=True)
-
-    sell_custom_stoploss_under_rel_1 = DecimalParameter(0.001, 0.02, default=sell_params['sell_custom_stoploss_under_rel_1'], space='sell', optimize=False, load=True)
-    sell_custom_stoploss_under_rsi_diff_1 = DecimalParameter(0.0, 20.0, default=sell_params['sell_custom_stoploss_under_rsi_diff_1'], space='sell', optimize=False, load=True)
-
+    sell_custom_stoploss_under_rel_1 = DecimalParameter(0.001, 0.02, default=sell_params['sell_custom_stoploss_under_rel_1'], space='sell', optimize=True, load=True)
+    sell_custom_stoploss_under_rsi_diff_1 = DecimalParameter(0.0, 20.0, default=sell_params['sell_custom_stoploss_under_rsi_diff_1'], space='sell', optimize=True, load=True)
 
     # Protection
     fast_ewo = 50
     slow_ewo = 200
+
+    lookback_candles = IntParameter(
+        1, 36, default=buy_params['lookback_candles'], space='buy', optimize=False)
+
+    profit_threshold = DecimalParameter(0.99, 1.05,
+                                        default=buy_params['profit_threshold'], space='buy', optimize=False)
+
     ewo_low = DecimalParameter(-20.0, -8.0,
                                default=buy_params['ewo_low'], space='buy', optimize=False)
     ewo_high = DecimalParameter(
@@ -224,30 +165,12 @@ class tesla(IStrategy):
     ewo_high_2 = DecimalParameter(
         -6.0, 12.0, default=buy_params['ewo_high_2'], space='buy', optimize=False)
 
-    rsi_buy = IntParameter(30, 70, default=buy_params['rsi_buy'], space='buy', optimize=True)
-
-    profit_threshold = DecimalParameter(1.0, 1.03,
-                                        default=buy_params['profit_threshold'], space='buy', optimize=True)
-
-
-    pHSL = DecimalParameter(-0.10, -0.002, default=-0.012, decimals=3,
-                            space='sell', optimize=False, load=True)
-    # profit threshold 1, trigger point, SL_1 is used
-    pPF_1 = DecimalParameter(0.008, 0.020, default=0.016, decimals=3,
-                             space='sell', optimize=False, load=True)
-    pSL_1 = DecimalParameter(0.008, 0.020, default=0.014, decimals=3,
-                             space='sell', optimize=False, load=True)
-
-    # profit threshold 2, SL_2 is used
-    pPF_2 = DecimalParameter(0.040, 0.100, default=0.024, decimals=3,
-                             space='sell', optimize=False, load=True)
-    pSL_2 = DecimalParameter(0.020, 0.070, default=0.022, decimals=3,
-                             space='sell', optimize=False, load=True)
-
-
+    rsi_buy = IntParameter(10, 80, default=buy_params['rsi_buy'], space='buy', optimize=False)
+    rsi_fast_buy = IntParameter(
+        10, 50, default=buy_params['rsi_fast_buy'], space='buy', optimize=False)
 
     # Trailing stop:
-    trailing_stop = True
+    trailing_stop = False
     trailing_stop_positive = 0.001
     trailing_stop_positive_offset = 0.016
     trailing_only_offset_is_reached = True
@@ -266,71 +189,52 @@ class tesla(IStrategy):
 
     # Optimal timeframe for the strategy
     timeframe = '5m'
+    inf_15m = '15m'
     inf_1h = '1h'
 
     process_only_new_candles = True
     startup_candle_count = 200
-    use_custom_stoploss = False
+    use_custom_stoploss = True
 
     plot_config = {
         'main_plot': {
             'ma_buy': {'color': 'orange'},
             'ma_sell': {'color': 'orange'},
         },
+        'subplots': {
+            'rsi': {
+                'rsi': {'color': 'orange'},
+                'rsi_fast': {'color': 'red'},
+                'rsi_slow': {'color': 'green'},
+            },
+            'ewo': {
+                'EWO': {'color': 'orange'}
+            },
+        }
     }
 
     slippage_protection = {
         'retries': 3,
-        'max_slippage': -0.002
+        'max_slippage': -0.02
     }
 
-    protections = [
-        {
-            "method": "LowProfitPairs",
-            "lookback_period_candles": 20,
-            "trade_limit": 1,
-            "stop_duration": 20,
-            "required_profit": -0.05
-        },
-        {
-            "method": "CooldownPeriod",
-            "stop_duration_candles": 2
-        }
-    ]
-
-    buy_signals = {}
-
-   
-
-    # Custom Trailing Stoploss by Perkmeister
-    
     def custom_stoploss(self, pair: str, trade: 'Trade', current_time: datetime,
                         current_rate: float, current_profit: float, **kwargs) -> float:
 
-        # # hard stoploss profit
-        HSL = self.pHSL.value
-        PF_1 = self.pPF_1.value
-        SL_1 = self.pSL_1.value
-        PF_2 = self.pPF_2.value
-        SL_2 = self.pSL_2.value
+        if (current_profit > 0.3):
+            return 0.05
+        elif (current_profit > 0.1):
+            return 0.03
+        elif (current_profit > 0.06):
+            return 0.02
+        elif (current_profit > 0.04):
+            return 0.01
+        elif (current_profit > 0.025):
+            return 0.005
+        elif (current_profit > 0.018):
+            return 0.005
 
-        # For profits between PF_1 and PF_2 the stoploss (sl_profit) used is linearly interpolated
-        # between the values of SL_1 and SL_2. For all profits above PL_2 the sl_profit value
-        # rises linearly with current profit, for profits below PF_1 the hard stoploss profit is used.
-
-        if (current_profit > PF_2):
-            sl_profit = SL_2 + (current_profit - PF_2)
-        elif (current_profit > PF_1):
-            sl_profit = SL_1 + ((current_profit - PF_1)*(SL_2 - SL_1)/(PF_2 - PF_1))
-        else:
-            sl_profit = HSL
-
-        
-
-        return stoploss_from_open(sl_profit, current_profit)
-
-    def get_ticker_indicator(self):
-        return int(self.timeframe[:-1])
+        return 0.15
 
     def custom_sell(self, pair: str, trade: 'Trade', current_time: 'datetime', current_rate: float,
                     current_profit: float, **kwargs):
@@ -338,6 +242,7 @@ class tesla(IStrategy):
         last_candle = dataframe.iloc[-1].squeeze()
 
         max_profit = ((trade.max_rate - trade.open_rate) / trade.open_rate)
+        if(current_time < trade.open_date_utc + timedelta(minutes=360)) : return None
 
         if (last_candle is not None):
             if (current_profit > self.sell_custom_profit_4.value) & (last_candle['rsi'] < self.sell_custom_rsi_4.value):
@@ -371,11 +276,7 @@ class tesla(IStrategy):
             elif (last_candle['close'] < last_candle['ema_200']) & (current_profit > self.sell_trail_profit_min_3.value) & (current_profit < self.sell_trail_profit_max_3.value) & (max_profit > (current_profit + self.sell_trail_down_3.value)):
                 return 'signal_profit_u_t_1'
 
-            #elif (current_profit > 0.0) & (last_candle['close'] < last_candle['ema_200']) & (((last_candle['ema_200'] - last_candle['close']) / last_candle['close']) < self.sell_custom_profit_under_rel_1.value) & (last_candle['rsi'] > last_candle['rsi_1h'] + self.sell_custom_profit_under_rsi_diff_1.value):
-                #return 'signal_profit_u_e_1'
-
-            #elif (current_profit < -0.0) & (last_candle['close'] < last_candle['ema_200']) & (((last_candle['ema_200'] - last_candle['close']) / last_candle['close']) < self.sell_custom_stoploss_under_rel_1.value) & (last_candle['rsi'] > last_candle['rsi_1h'] + self.sell_custom_stoploss_under_rsi_diff_1.value):
-                #return 'signal_stoploss_u_1'
+            
 
         return None
 
@@ -407,49 +308,50 @@ class tesla(IStrategy):
                 return False
 
         state[pair] = 0
-        
+
         return True
 
     def informative_pairs(self):
-        # get access to all pairs available in whitelist.
         pairs = self.dp.current_whitelist()
-        # Assign tf to each pair so they can be downloaded and cached for strategy.
-        informative_pairs = [(pair, '1h') for pair in pairs]
+        informative_pairs = [(pair, '15m') for pair in pairs]
         return informative_pairs
 
     def informative_1h_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         assert self.dp, "DataProvider is required for multiple timeframes."
         # Get the informative pair
         informative_1h = self.dp.get_pair_dataframe(pair=metadata['pair'], timeframe=self.inf_1h)
-        
-        dataframe['hma_50'] = qtpylib.hull_moving_average(dataframe['close'], window=50)
+        # EMA
+        # informative_1h['ema_50'] = ta.EMA(informative_1h, timeperiod=50)
+        # informative_1h['ema_200'] = ta.EMA(informative_1h, timeperiod=200)
+        # # RSI
+        # informative_1h['rsi'] = ta.RSI(informative_1h, timeperiod=14)
 
-        dataframe['ema_100'] = ta.EMA(dataframe, timeperiod=100)
-
-        dataframe['ema_12'] = ta.EMA(dataframe, timeperiod=12)
-        dataframe['ema_20'] = ta.EMA(dataframe, timeperiod=20)
-        dataframe['ema_26'] = ta.EMA(dataframe, timeperiod=26)
-        dataframe['ema_50'] = ta.EMA(dataframe, timeperiod=50)
-        dataframe['ema_200'] = ta.EMA(dataframe, timeperiod=200)
-
-
-        dataframe['sma_200'] = ta.SMA(dataframe, timeperiod=200)
-        dataframe['sma_200_dec'] = dataframe['sma_200'] < dataframe['sma_200'].shift(20)
-        dataframe['sma_9'] = ta.SMA(dataframe, timeperiod=9)
-        # Elliot
-        dataframe['EWO'] = EWO(dataframe, self.fast_ewo, self.slow_ewo)
-
-        # RSI
-        dataframe['rsi'] = ta.RSI(dataframe, timeperiod=14)
-        dataframe['rsi_fast'] = ta.RSI(dataframe, timeperiod=4)
-        dataframe['rsi_slow'] = ta.RSI(dataframe, timeperiod=20)
+        # bollinger = qtpylib.bollinger_bands(qtpylib.typical_price(dataframe), window=20, stds=2)
+        # informative_1h['bb_lowerband'] = bollinger['lower']
+        # informative_1h['bb_middleband'] = bollinger['mid']
+        # informative_1h['bb_upperband'] = bollinger['upper']
 
         return informative_1h
 
-    def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+    def informative_15m_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        assert self.dp, "DataProvider is required for multiple timeframes."
+        # Get the informative pair
+        informative_15m = self.dp.get_pair_dataframe(pair=metadata['pair'], timeframe=self.inf_15m)
+        # EMA
+        # informative_1h['ema_50'] = ta.EMA(informative_1h, timeperiod=50)
+        # informative_1h['ema_200'] = ta.EMA(informative_1h, timeperiod=200)
+        # # RSI
+        # informative_1h['rsi'] = ta.RSI(informative_1h, timeperiod=14)
 
+        # bollinger = qtpylib.bollinger_bands(qtpylib.typical_price(dataframe), window=20, stds=2)
+        # informative_1h['bb_lowerband'] = bollinger['lower']
+        # informative_1h['bb_middleband'] = bollinger['mid']
+        # informative_1h['bb_upperband'] = bollinger['upper']
 
-        
+        return informative_15m
+
+    def normal_tf_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+
         # Calculate all ma_buy values
         for val in self.base_nb_candles_buy.range:
             dataframe[f'ma_buy_{val}'] = ta.EMA(dataframe, timeperiod=val)
@@ -459,16 +361,7 @@ class tesla(IStrategy):
             dataframe[f'ma_sell_{val}'] = ta.EMA(dataframe, timeperiod=val)
 
         dataframe['hma_50'] = qtpylib.hull_moving_average(dataframe['close'], window=50)
-
         dataframe['ema_100'] = ta.EMA(dataframe, timeperiod=100)
-
-        dataframe['ema_12'] = ta.EMA(dataframe, timeperiod=12)
-        dataframe['ema_20'] = ta.EMA(dataframe, timeperiod=20)
-        dataframe['ema_26'] = ta.EMA(dataframe, timeperiod=26)
-        dataframe['ema_50'] = ta.EMA(dataframe, timeperiod=50)
-        dataframe['ema_200'] = ta.EMA(dataframe, timeperiod=200)
-
-
         dataframe['sma_200'] = ta.SMA(dataframe, timeperiod=200)
         dataframe['sma_200_dec'] = dataframe['sma_200'] < dataframe['sma_200'].shift(20)
         dataframe['sma_9'] = ta.SMA(dataframe, timeperiod=9)
@@ -479,19 +372,35 @@ class tesla(IStrategy):
         dataframe['rsi'] = ta.RSI(dataframe, timeperiod=14)
         dataframe['rsi_fast'] = ta.RSI(dataframe, timeperiod=4)
         dataframe['rsi_slow'] = ta.RSI(dataframe, timeperiod=20)
-        
-        informative_1h = self.informative_1h_indicators(dataframe, metadata)
-        dataframe = merge_informative_pair(dataframe, informative_1h, self.timeframe, self.inf_1h, ffill=True)
+        dataframe['ema_200'] = ta.EMA(dataframe, timeperiod=200)
+        return dataframe
+
+    def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        # informative_1h = self.informative_1h_indicators(dataframe, metadata)
+        informative_15m = self.informative_15m_indicators(dataframe, metadata)
+        dataframe = merge_informative_pair(
+            dataframe, informative_15m, self.timeframe, self.inf_15m, ffill=True)
+
+        # The indicators for the normal (5m) timeframe
+        dataframe = self.normal_tf_indicators(dataframe, metadata)
 
         return dataframe
 
-    
-
     def populate_buy_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
-        
+
+        dont_buy_conditions = []
+
+        dont_buy_conditions.append(
+            (
+                # don't buy if there isn't 3% profit to be made
+                (dataframe['close_15m'].rolling(self.lookback_candles.value).max()
+                 < (dataframe['close'] * self.profit_threshold.value))
+            )
+        )
+
         dataframe.loc[
             (
-                (dataframe['rsi_fast'] < 35) &
+                (dataframe['rsi_fast'] < self.rsi_fast_buy.value) &
                 (dataframe['close'] < (dataframe[f'ma_buy_{self.base_nb_candles_buy.value}'] * self.low_offset.value)) &
                 (dataframe['EWO'] > self.ewo_high.value) &
                 (dataframe['rsi'] < self.rsi_buy.value) &
@@ -503,7 +412,7 @@ class tesla(IStrategy):
 
         dataframe.loc[
             (
-                (dataframe['rsi_fast'] < 35) &
+                (dataframe['rsi_fast'] < self.rsi_fast_buy.value) &
                 (dataframe['close'] < (dataframe[f'ma_buy_{self.base_nb_candles_buy.value}'] * self.low_offset_2.value)) &
                 (dataframe['EWO'] > self.ewo_high_2.value) &
                 (dataframe['rsi'] < self.rsi_buy.value) &
@@ -515,7 +424,7 @@ class tesla(IStrategy):
 
         dataframe.loc[
             (
-                (dataframe['rsi_fast'] < 35) &
+                (dataframe['rsi_fast'] < self.rsi_fast_buy.value) &
                 (dataframe['close'] < (dataframe[f'ma_buy_{self.base_nb_candles_buy.value}'] * self.low_offset.value)) &
                 (dataframe['EWO'] < self.ewo_low.value) &
                 (dataframe['volume'] > 0) &
@@ -523,14 +432,6 @@ class tesla(IStrategy):
                     dataframe[f'ma_sell_{self.base_nb_candles_sell.value}'] * self.high_offset.value))
             ),
             ['buy', 'buy_tag']] = (1, 'ewolow')
-
-        dont_buy_conditions = []
-        
-        dont_buy_conditions.append(
-            (
-                (dataframe['close_1h'].rolling(24).max() < (dataframe['close'] * self.profit_threshold.value )) # don't buy if there isn't 3% profit to be made
-            )
-        )
 
         if dont_buy_conditions:
             for condition in dont_buy_conditions:
@@ -558,8 +459,6 @@ class tesla(IStrategy):
 
         )
 
-        dataframe['ema_offset_sell'] = ta.EMA(dataframe, int(self.base_nb_candles_sell.value)) *self.high_offset_ema.value
-
         if conditions:
             dataframe.loc[
                 reduce(lambda x, y: x | y, conditions),
@@ -567,10 +466,3 @@ class tesla(IStrategy):
             ]=1
 
         return dataframe
-
-def EWO(dataframe, sma1_length=5, sma2_length=35):
-    df = dataframe.copy()
-    sma1 = ta.EMA(df, timeperiod=sma1_length)
-    sma2 = ta.EMA(df, timeperiod=sma2_length)
-    smadif = (sma1 - sma2) / df['close'] * 100
-    return smadif
