@@ -87,10 +87,14 @@ buy_params = {
 
 # Sell hyperspace params:
 sell_params = {
-    "base_nb_candles_sell": 16,
-    "high_offset": 1.084,
-    "high_offset_2": 1.401,
-    "high_offset_ema": 1.012,  # value loaded from strategy
+     #"base_nb_candles_sell": 16,
+     #"high_offset": 1.084,
+     #"high_offset_2": 1.401,
+     #"high_offset_ema": 1.012,  # value loaded from strategy
+    "base_nb_candles_sell": 21,
+    "high_offset": 0.999,
+    "high_offset_2": 1.179,
+    "high_offset_ema": 1.056,
     "sell_custom_dec_profit_1": 0.05,  # value loaded from strategy
     "sell_custom_dec_profit_2": 0.07,  # value loaded from strategy
     "sell_custom_profit_0": 0.009,  # value loaded from strategy
@@ -122,7 +126,7 @@ sell_params = {
     "sell_trail_profit_min_1": 0.15,  # value loaded from strategy
     "sell_trail_profit_min_2": 0.01,  # value loaded from strategy
     "sell_trail_profit_min_3": 0.05,  # value loaded from strategy
-    "pHSL": -0.04,
+    "pHSL": -0.012,
     "pPF_1": 0.016,
     "pPF_2": 0.024,
     "pSL_1": 0.014,
@@ -130,7 +134,12 @@ sell_params = {
 }
 
 
-
+def EWO(dataframe, ema_length=5, ema2_length=35):
+    df = dataframe.copy()
+    ema1 = ta.EMA(df, timeperiod=ema_length)
+    ema2 = ta.EMA(df, timeperiod=ema2_length)
+    emadif = (ema1 - ema2) / df['low'] * 100
+    return emadif
 
 
 class tesla(IStrategy):
@@ -146,22 +155,22 @@ class tesla(IStrategy):
     }
 
     # Stoploss:
-    stoploss = -0.04
+    stoploss = -0.08
 
     # SMAOffset
-    high_offset_ema = DecimalParameter(0.99, 1.1, default=1.012, load=True, space='sell', optimize=False)
+    high_offset_ema = DecimalParameter(0.99, 1.1, default=1.056, load=True, space='sell', optimize=True)
     base_nb_candles_buy = IntParameter(
         2, 20, default=buy_params['base_nb_candles_buy'], space='buy', optimize=False)
     base_nb_candles_sell = IntParameter(
-        10, 40, default=sell_params['base_nb_candles_sell'], space='sell', optimize=False)
+        10, 40, default=sell_params['base_nb_candles_sell'], space='sell', optimize=True)
     low_offset = DecimalParameter(
         0.9, 0.99, default=buy_params['low_offset'], space='buy', optimize=False)
     low_offset_2 = DecimalParameter(
         0.9, 0.99, default=buy_params['low_offset_2'], space='buy', optimize=False)
     high_offset = DecimalParameter(
-        0.95, 1.1, default=sell_params['high_offset'], space='sell', optimize=False)
+        0.95, 1.1, default=sell_params['high_offset'], space='sell', optimize=True)
     high_offset_2 = DecimalParameter(
-        0.99, 1.5, default=sell_params['high_offset_2'], space='sell', optimize=False)
+        0.99, 1.5, default=sell_params['high_offset_2'], space='sell', optimize=True)
 
 
     sell_custom_profit_0 = DecimalParameter(0.001, 0.1, default=sell_params['sell_custom_profit_0'], space='sell', decimals=3, optimize=False, load=True)
@@ -221,18 +230,18 @@ class tesla(IStrategy):
                                         default=buy_params['profit_threshold'], space='buy', optimize=True)
 
 
-    pHSL = DecimalParameter(-0.7, -0.002, default=-0.015, decimals=3,
+    pHSL = DecimalParameter(-0.10, -0.002, default=-0.012, decimals=3,
                             space='sell', optimize=False, load=True)
     # profit threshold 1, trigger point, SL_1 is used
-    pPF_1 = DecimalParameter(0.008, 0.020, default=0.012, decimals=3,
+    pPF_1 = DecimalParameter(0.008, 0.020, default=0.016, decimals=3,
                              space='sell', optimize=False, load=True)
-    pSL_1 = DecimalParameter(0.008, 0.020, default=0.010, decimals=3,
+    pSL_1 = DecimalParameter(0.008, 0.020, default=0.014, decimals=3,
                              space='sell', optimize=False, load=True)
 
     # profit threshold 2, SL_2 is used
-    pPF_2 = DecimalParameter(0.040, 0.100, default=0.022, decimals=3,
+    pPF_2 = DecimalParameter(0.040, 0.100, default=0.024, decimals=3,
                              space='sell', optimize=False, load=True)
-    pSL_2 = DecimalParameter(0.020, 0.070, default=0.020, decimals=3,
+    pSL_2 = DecimalParameter(0.020, 0.070, default=0.022, decimals=3,
                              space='sell', optimize=False, load=True)
 
 
@@ -246,7 +255,7 @@ class tesla(IStrategy):
     # Sell signal
     use_sell_signal = True
     sell_profit_only = False
-    sell_profit_offset = 0.001
+    sell_profit_offset = 0.01
     ignore_roi_if_buy_signal = False
 
     # Optional order time in force.
@@ -274,6 +283,20 @@ class tesla(IStrategy):
         'retries': 3,
         'max_slippage': -0.002
     }
+
+    protections = [
+        {
+            "method": "LowProfitPairs",
+            "lookback_period_candles": 20,
+            "trade_limit": 1,
+            "stop_duration": 20,
+            "required_profit": -0.05
+        },
+        {
+            "method": "CooldownPeriod",
+            "stop_duration_candles": 2
+        }
+    ]
 
     buy_signals = {}
 
