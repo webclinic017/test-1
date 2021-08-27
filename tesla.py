@@ -226,7 +226,7 @@ class tesla(IStrategy):
                                         default=buy_params['profit_threshold'], space='buy', optimize=True)
 
 
-    pHSL = DecimalParameter(-0.10, -0.002, default=-0.012, decimals=3,
+    pHSL = DecimalParameter(-0.7, -0.002, default=-0.012, decimals=3,
                             space='sell', optimize=False, load=True)
     # profit threshold 1, trigger point, SL_1 is used
     pPF_1 = DecimalParameter(0.008, 0.020, default=0.016, decimals=3,
@@ -243,7 +243,7 @@ class tesla(IStrategy):
 
 
     # Trailing stop:
-    trailing_stop = True
+    trailing_stop = False
     trailing_stop_positive = 0.001
     trailing_stop_positive_offset = 0.016
     trailing_only_offset_is_reached = True
@@ -266,7 +266,7 @@ class tesla(IStrategy):
 
     process_only_new_candles = True
     startup_candle_count = 200
-    use_custom_stoploss = False
+    use_custom_stoploss = True
 
     plot_config = {
         'main_plot': {
