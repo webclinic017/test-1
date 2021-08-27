@@ -122,7 +122,7 @@ sell_params = {
     "sell_trail_profit_min_1": 0.15,  # value loaded from strategy
     "sell_trail_profit_min_2": 0.01,  # value loaded from strategy
     "sell_trail_profit_min_3": 0.05,  # value loaded from strategy
-    "pHSL": -0.012,
+    "pHSL": -0.04,
     "pPF_1": 0.016,
     "pPF_2": 0.024,
     "pSL_1": 0.014,
