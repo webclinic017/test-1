@@ -238,7 +238,7 @@ class tesla(IStrategy):
 
 
     # Trailing stop:
-    trailing_stop = False
+    trailing_stop = True
     trailing_stop_positive = 0.001
     trailing_stop_positive_offset = 0.016
     trailing_only_offset_is_reached = True
@@ -261,7 +261,7 @@ class tesla(IStrategy):
 
     process_only_new_candles = True
     startup_candle_count = 200
-    use_custom_stoploss = True
+    use_custom_stoploss = False
 
     plot_config = {
         'main_plot': {
