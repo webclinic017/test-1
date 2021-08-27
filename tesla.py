@@ -79,7 +79,7 @@ def EWO(dataframe, ema_length=5, ema2_length=35):
     return emadif
 
 
-class tesla3(IStrategy):
+class tesla(IStrategy):
     INTERFACE_VERSION = 2
 
     # ROI table:
