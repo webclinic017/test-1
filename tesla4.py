@@ -22,23 +22,23 @@ import technical.indicators as ftt
 
 # Buy hyperspace params:
 buy_params = {
-    "low_offset": 0.981,
-    "base_nb_candles_buy": 8,  # value loaded from strategy
-    "ewo_high": 3.553,  # value loaded from strategy
-    "ewo_high_2": -5.585,  # value loaded from strategy
-    "ewo_low": -14.378,  # value loaded from strategy
-    "lookback_candles": 32,  # value loaded from strategy
-    "low_offset_2": 0.942,  # value loaded from strategy
-    "profit_threshold": 1.037,  # value loaded from strategy
-    "rsi_buy": 78,  # value loaded from strategy
-    "rsi_fast_buy": 37,  # value loaded from strategy
+    "base_nb_candles_buy": 8,
+      "ewo_high": 2.675,
+      "ewo_high_2": 4.516,
+      "ewo_low": -9.263,
+      "lookback_candles": 22,
+      "low_offset": 0.988,
+      "low_offset_2": 0.915,
+      "profit_threshold": 1.046,
+      "rsi_buy": 57,
+      "rsi_fast_buy": 49
 }
 
 # Sell hyperspace params:
 sell_params = {
-        "base_nb_candles_sell": 16,
-      "high_offset": 1.097,
-      "high_offset_2": 1.472,
+    "base_nb_candles_sell": 17,
+      "high_offset": 1.096,
+      "high_offset_2": 1.008
       
 }
 
@@ -63,30 +63,30 @@ class tesla4(IStrategy):
 
     # ROI table:
     minimal_roi = {
-        # "0": 0.283,
-        # "40": 0.086,
-        # "99": 0.036,
-        "300": 0.003,
+        "0": 0.28200000000000003,
+      "39": 0.092,
+      "71": 0.03,
+      "167": 0
 
         
     }
 
     # Stoploss:
-    stoploss = -0.15
+    stoploss = -0.079
 
     # SMAOffset
     base_nb_candles_buy = IntParameter(
-        2, 20, default=buy_params['base_nb_candles_buy'], space='buy', optimize=False)
+        2, 20, default=buy_params['base_nb_candles_buy'], space='buy', optimize=True)
     base_nb_candles_sell = IntParameter(
-        2, 25, default=sell_params['base_nb_candles_sell'], space='sell', optimize=False)
+        2, 25, default=sell_params['base_nb_candles_sell'], space='sell', optimize=True)
     low_offset = DecimalParameter(
-        0.9, 0.99, default=buy_params['low_offset'], space='buy', optimize=False)
+        0.9, 0.99, default=buy_params['low_offset'], space='buy', optimize=True)
     low_offset_2 = DecimalParameter(
-        0.9, 0.99, default=buy_params['low_offset_2'], space='buy', optimize=False)
+        0.9, 0.99, default=buy_params['low_offset_2'], space='buy', optimize=True)
     high_offset = DecimalParameter(
-        0.95, 1.1, default=sell_params['high_offset'], space='sell', optimize=False)
+        0.95, 1.1, default=sell_params['high_offset'], space='sell', optimize=True)
     high_offset_2 = DecimalParameter(
-        0.99, 1.5, default=sell_params['high_offset_2'], space='sell', optimize=False)
+        0.99, 1.5, default=sell_params['high_offset_2'], space='sell', optimize=True)
 
     
 
@@ -97,25 +97,25 @@ class tesla4(IStrategy):
     slow_ewo = 200
 
     lookback_candles = IntParameter(
-        1, 36, default=buy_params['lookback_candles'], space='buy', optimize=False)
+        1, 36, default=buy_params['lookback_candles'], space='buy', optimize=True)
 
     profit_threshold = DecimalParameter(0.99, 1.05,
-                                        default=buy_params['profit_threshold'], space='buy', optimize=False)
+                                        default=buy_params['profit_threshold'], space='buy', optimize=True)
 
     ewo_low = DecimalParameter(-20.0, -8.0,
-                               default=buy_params['ewo_low'], space='buy', optimize=False)
+                               default=buy_params['ewo_low'], space='buy', optimize=True)
     ewo_high = DecimalParameter(
-        2.0, 12.0, default=buy_params['ewo_high'], space='buy', optimize=False)
+        2.0, 12.0, default=buy_params['ewo_high'], space='buy', optimize=True)
 
     ewo_high_2 = DecimalParameter(
-        -6.0, 12.0, default=buy_params['ewo_high_2'], space='buy', optimize=False)
+        -6.0, 12.0, default=buy_params['ewo_high_2'], space='buy', optimize=True)
 
-    rsi_buy = IntParameter(10, 80, default=buy_params['rsi_buy'], space='buy', optimize=False)
+    rsi_buy = IntParameter(10, 80, default=buy_params['rsi_buy'], space='buy', optimize=True)
     rsi_fast_buy = IntParameter(
-        10, 50, default=buy_params['rsi_fast_buy'], space='buy', optimize=False)
+        10, 50, default=buy_params['rsi_fast_buy'], space='buy', optimize=True)
 
     # Trailing stop:
-    trailing_stop = False
+    trailing_stop = True
     trailing_stop_positive = 0.001
     trailing_stop_positive_offset = 0.016
     trailing_only_offset_is_reached = True
@@ -124,7 +124,29 @@ class tesla4(IStrategy):
     use_sell_signal = True
     sell_profit_only = False
     sell_profit_offset = 0.01
-    ignore_roi_if_buy_signal = False
+    ignore_roi_if_buy_signal = True
+
+
+    protections = [
+        {
+            "method": "CooldownPeriod",
+            "stop_duration_candles": 2
+        },
+        {
+            "method": "LowProfitPairs",
+            "lookback_period_candles": 60,
+            "trade_limit": 1,
+            "stop_duration_candles": 12,
+            "required_profit": -0.05
+        },
+        {
+            "method": "StoplossGuard",
+            "lookback_period_candles": 60,
+            "trade_limit": 1,
+            "stop_duration_candles": 12,
+            "only_per_pair": True
+        },
+    ]
 
     # Optional order time in force.
     order_time_in_force = {
@@ -139,7 +161,7 @@ class tesla4(IStrategy):
 
     process_only_new_candles = True
     startup_candle_count = 200
-    use_custom_stoploss = True
+    use_custom_stoploss = False
 
     plot_config = {
         'main_plot': {
