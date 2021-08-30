@@ -29,7 +29,7 @@ buy_params = {
       "lookback_candles": 22,
       "low_offset": 0.988,
       "low_offset_2": 0.915,
-      "profit_threshold": 1.046,
+      "profit_threshold": 1.0408,
       "rsi_buy": 57,
       "rsi_fast_buy": 49
 }
@@ -38,8 +38,8 @@ buy_params = {
 sell_params = {
     "base_nb_candles_sell": 17,
       "high_offset": 1.096,
-      "high_offset_2": 1.008
-      
+      "high_offset_2": 1.008,
+      "sell_rsi_main": 87.43
 }
 
 def zlema2(dataframe, fast):
@@ -63,33 +63,33 @@ class tesla4(IStrategy):
 
     # ROI table:
     minimal_roi = {
-        "0": 0.28200000000000003,
-      "39": 0.092,
-      "71": 0.03,
-      "167": 0
+       "0": 0.17099999999999999,
+      "39": 0.075,
+      "64": 0.03,
+      "147": 0
 
         
     }
 
     # Stoploss:
-    stoploss = -0.079
+    stoploss = -0.15
 
     # SMAOffset
     base_nb_candles_buy = IntParameter(
-        2, 20, default=buy_params['base_nb_candles_buy'], space='buy', optimize=True)
+        2, 20, default=buy_params['base_nb_candles_buy'], space='buy', optimize=False)
     base_nb_candles_sell = IntParameter(
-        2, 25, default=sell_params['base_nb_candles_sell'], space='sell', optimize=True)
+        2, 25, default=sell_params['base_nb_candles_sell'], space='sell', optimize=False)
     low_offset = DecimalParameter(
-        0.9, 0.99, default=buy_params['low_offset'], space='buy', optimize=True)
+        0.9, 0.99, default=buy_params['low_offset'], space='buy', optimize=False)
     low_offset_2 = DecimalParameter(
-        0.9, 0.99, default=buy_params['low_offset_2'], space='buy', optimize=True)
+        0.9, 0.99, default=buy_params['low_offset_2'], space='buy', optimize=False)
     high_offset = DecimalParameter(
-        0.95, 1.1, default=sell_params['high_offset'], space='sell', optimize=True)
+        0.95, 1.1, default=sell_params['high_offset'], space='sell', optimize=False)
     high_offset_2 = DecimalParameter(
-        0.99, 1.5, default=sell_params['high_offset_2'], space='sell', optimize=True)
+        0.99, 1.5, default=sell_params['high_offset_2'], space='sell', optimize=False)
 
     
-
+    sell_rsi_main = DecimalParameter(72.0, 90.0, default=sell_params['sell_rsi_main'], space='sell', decimals=2, optimize=False, load=True)
     
 
     # Protection
@@ -97,22 +97,22 @@ class tesla4(IStrategy):
     slow_ewo = 200
 
     lookback_candles = IntParameter(
-        1, 36, default=buy_params['lookback_candles'], space='buy', optimize=True)
+        1, 36, default=buy_params['lookback_candles'], space='buy', optimize=False)
 
     profit_threshold = DecimalParameter(0.99, 1.05,
-                                        default=buy_params['profit_threshold'], space='buy', optimize=True)
+                                        default=buy_params['profit_threshold'], space='buy', optimize=False)
 
     ewo_low = DecimalParameter(-20.0, -8.0,
-                               default=buy_params['ewo_low'], space='buy', optimize=True)
+                               default=buy_params['ewo_low'], space='buy', optimize=False)
     ewo_high = DecimalParameter(
-        2.0, 12.0, default=buy_params['ewo_high'], space='buy', optimize=True)
+        2.0, 12.0, default=buy_params['ewo_high'], space='buy', optimize=False)
 
     ewo_high_2 = DecimalParameter(
-        -6.0, 12.0, default=buy_params['ewo_high_2'], space='buy', optimize=True)
+        -6.0, 12.0, default=buy_params['ewo_high_2'], space='buy', optimize=False)
 
-    rsi_buy = IntParameter(10, 80, default=buy_params['rsi_buy'], space='buy', optimize=True)
+    rsi_buy = IntParameter(10, 80, default=buy_params['rsi_buy'], space='buy', optimize=False)
     rsi_fast_buy = IntParameter(
-        10, 50, default=buy_params['rsi_fast_buy'], space='buy', optimize=True)
+        10, 50, default=buy_params['rsi_fast_buy'], space='buy', optimize=False)
 
     # Trailing stop:
     trailing_stop = True
@@ -124,29 +124,10 @@ class tesla4(IStrategy):
     use_sell_signal = True
     sell_profit_only = False
     sell_profit_offset = 0.01
-    ignore_roi_if_buy_signal = True
+    ignore_roi_if_buy_signal = False
 
 
-    protections = [
-        {
-            "method": "CooldownPeriod",
-            "stop_duration_candles": 2
-        },
-        {
-            "method": "LowProfitPairs",
-            "lookback_period_candles": 60,
-            "trade_limit": 1,
-            "stop_duration_candles": 12,
-            "required_profit": -0.05
-        },
-        {
-            "method": "StoplossGuard",
-            "lookback_period_candles": 60,
-            "trade_limit": 1,
-            "stop_duration_candles": 12,
-            "only_per_pair": True
-        },
-    ]
+   
 
     # Optional order time in force.
     order_time_in_force = {
@@ -185,23 +166,7 @@ class tesla4(IStrategy):
         'max_slippage': -0.02
     }
 
-    def custom_stoploss(self, pair: str, trade: 'Trade', current_time: datetime,
-                        current_rate: float, current_profit: float, **kwargs) -> float:
-
-        if (current_profit > 0.3):
-            return 0.05
-        elif (current_profit > 0.1):
-            return 0.03
-        elif (current_profit > 0.06):
-            return 0.02
-        elif (current_profit > 0.04):
-            return 0.01
-        elif (current_profit > 0.025):
-            return 0.005
-        elif (current_profit > 0.018):
-            return 0.005
-
-        return 0.15
+    
 
    
 
@@ -245,6 +210,8 @@ class tesla4(IStrategy):
         assert self.dp, "DataProvider is required for multiple timeframes."
         # Get the informative pair
         informative_1h = self.dp.get_pair_dataframe(pair=metadata['pair'], timeframe=self.inf_1h)
+        dataframe['sma_200'] = ta.SMA(dataframe, timeperiod=200)
+        dataframe['sma_200_dec'] = dataframe['sma_200'] < dataframe['sma_200'].shift(20)
         # EMA
         # informative_1h['ema_50'] = ta.EMA(informative_1h, timeperiod=50)
         # informative_1h['ema_200'] = ta.EMA(informative_1h, timeperiod=200)
@@ -255,6 +222,7 @@ class tesla4(IStrategy):
         # informative_1h['bb_lowerband'] = bollinger['lower']
         # informative_1h['bb_middleband'] = bollinger['mid']
         # informative_1h['bb_upperband'] = bollinger['upper']
+        
 
         return informative_1h
 
@@ -262,6 +230,8 @@ class tesla4(IStrategy):
         assert self.dp, "DataProvider is required for multiple timeframes."
         # Get the informative pair
         informative_15m = self.dp.get_pair_dataframe(pair=metadata['pair'], timeframe=self.inf_15m)
+        dataframe['sma_200'] = ta.SMA(dataframe, timeperiod=200)
+        dataframe['sma_200_dec'] = dataframe['sma_200'] < dataframe['sma_200'].shift(20)
         # EMA
         # informative_1h['ema_50'] = ta.EMA(informative_1h, timeperiod=50)
         # informative_1h['ema_200'] = ta.EMA(informative_1h, timeperiod=200)
@@ -315,18 +285,31 @@ class tesla4(IStrategy):
         dataframe['ema_slow'] = ta.EMA(dataframe, timeperiod=50)
         dataframe['volume_mean_slow'] = dataframe['volume'].rolling(window=30).mean()
 
+        dataframe['vol_7_max'] = dataframe['volume'].rolling(window=20).max()
+        dataframe['vol_14_max'] = dataframe['volume'].rolling(window=14).max()
+        dataframe['vol_7_min'] = dataframe['volume'].rolling(window=20).min()
+        dataframe['vol_14_min'] = dataframe['volume'].rolling(window=14).min()
+        dataframe['roll_7'] = 100*((dataframe['volume']-dataframe['vol_7_max'])/(dataframe['vol_7_max']-dataframe['vol_7_min']))
+        dataframe['vol_base']=ta.SMA(dataframe['roll_7'], timeperiod=5)
+        dataframe['vol_ma_26'] = ta.EMA(dataframe['volume'], timeperiod=26)
+        dataframe['vol_ma_200'] = ta.EMA(dataframe['volume'], timeperiod=200)
+        dataframe['vol_ma_26_front'] = ((ta.EMA(dataframe['volume'], timeperiod=26).max())-(ta.EMA(dataframe['volume'], timeperiod=26).min()))/2
 
+      
 
         return dataframe
 
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         # informative_1h = self.informative_1h_indicators(dataframe, metadata)
+        
         informative_15m = self.informative_15m_indicators(dataframe, metadata)
         dataframe = merge_informative_pair(
             dataframe, informative_15m, self.timeframe, self.inf_15m, ffill=True)
 
         # The indicators for the normal (5m) timeframe
         dataframe = self.normal_tf_indicators(dataframe, metadata)
+
+    
 
         return dataframe
 
@@ -344,6 +327,7 @@ class tesla4(IStrategy):
 
         dataframe.loc[
             (
+                (dataframe['vol_base']<-80) &
                 (dataframe['rsi_fast'] < self.rsi_fast_buy.value) &
                 (dataframe['close'] < (dataframe[f'ma_buy_{self.base_nb_candles_buy.value}'] * self.low_offset.value)) &
                 (dataframe['EWO'] > self.ewo_high.value) &
@@ -356,6 +340,7 @@ class tesla4(IStrategy):
 
         dataframe.loc[
             (
+                (dataframe['vol_base']<-80) &
                 (dataframe['rsi_fast'] < self.rsi_fast_buy.value) &
                 (dataframe['close'] < (dataframe[f'ma_buy_{self.base_nb_candles_buy.value}'] * self.low_offset_2.value)) &
                 (dataframe['EWO'] > self.ewo_high_2.value) &
@@ -368,6 +353,20 @@ class tesla4(IStrategy):
 
         dataframe.loc[
             (
+                (dataframe['vol_base']>-20) &
+                (dataframe['rsi_fast'] < self.rsi_fast_buy.value) &
+                (dataframe['close'] < (dataframe[f'ma_buy_{self.base_nb_candles_buy.value}'] * self.low_offset.value)) &
+                (dataframe['EWO'] > self.ewo_high.value) &
+                (dataframe['rsi'] < self.rsi_buy.value) &
+                (dataframe['volume'] > 0) &
+                (dataframe['close'] < (
+                    dataframe[f'ma_sell_{self.base_nb_candles_sell.value}'] * self.high_offset.value))
+            ),
+            ['buy', 'buy_tag']] = (1, 'ewo1.2')
+
+        dataframe.loc[
+            (
+                (dataframe['vol_base']<-80) &
                 (dataframe['rsi_fast'] < self.rsi_fast_buy.value) &
                 (dataframe['close'] < (dataframe[f'ma_buy_{self.base_nb_candles_buy.value}'] * self.low_offset.value)) &
                 (dataframe['EWO'] < self.ewo_low.value) &
@@ -425,6 +424,23 @@ class tesla4(IStrategy):
                 (dataframe['rsi_fast'] > dataframe['rsi_slow'])
             )
 
+        )
+
+        conditions.append(
+            (
+                (dataframe['close'] > dataframe['bb_upperband']) &
+                (dataframe['close'].shift(1) > dataframe['bb_upperband'].shift(1)) &
+                (dataframe['close'].shift(2) > dataframe['bb_upperband'].shift(2)) &
+                (dataframe['close'].shift(3) > dataframe['bb_upperband'].shift(3)) &
+                (dataframe['volume'] > 0)
+            )
+        )
+
+        conditions.append(
+            (
+                (dataframe['rsi'] > self.sell_rsi_main.value) &
+                (dataframe['volume'] > 0)
+            )
         )
 
         if conditions:
