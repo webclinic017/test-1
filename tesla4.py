@@ -176,7 +176,7 @@ class tesla4(IStrategy):
 
         dataframe, _ = self.dp.get_analyzed_dataframe(pair, self.timeframe)
         last_candle = dataframe.iloc[-1]
-
+        
         if (last_candle is not None):
             if (sell_reason in ['sell_signal']):
                 if (last_candle['hma_50'] > last_candle['ema_100']) and (last_candle['rsi'] < 45): #*1.2
@@ -296,8 +296,9 @@ class tesla4(IStrategy):
         dataframe['vol_14_min'] = dataframe['volume'].rolling(window=14).min()
         dataframe['roll_7'] = 100*((dataframe['volume']-dataframe['vol_7_max'])/(dataframe['vol_7_max']-dataframe['vol_7_min']))
         dataframe['vol_base']=ta.SMA(dataframe['roll_7'], timeperiod=5)
-        dataframe['vol_ma_26'] = ta.SMA(dataframe['volume'], timeperiod=26)
-        dataframe['vol_ma_200'] = ta.SMA(dataframe['volume'], timeperiod=100)
+        dataframe['vol_ma_26'] = ta.EMA(dataframe['volume'], timeperiod=26)
+        dataframe['vol_ma_200'] = ta.EMA(dataframe['volume'], timeperiod=200)
+        dataframe['vol_ma_26_front'] = ((ta.EMA(dataframe['volume'], timeperiod=26).max())-(ta.EMA(dataframe['volume'], timeperiod=26).min()))/2
 
       
 
@@ -331,8 +332,7 @@ class tesla4(IStrategy):
 
         dataframe.loc[
             (
-                (dataframe['vol_base']>-96)&    
-                (dataframe['vol_base']<-77)&
+                (dataframe['vol_base']<-80) &
                 (dataframe['rsi_fast'] < self.rsi_fast_buy.value) &
                 (dataframe['close'] < (dataframe[f'ma_buy_{self.base_nb_candles_buy.value}'] * self.low_offset.value)) &
                 (dataframe['EWO'] > self.ewo_high.value) &
@@ -345,8 +345,7 @@ class tesla4(IStrategy):
 
         dataframe.loc[
             (
-                (dataframe['vol_base']>-96)&
-                (dataframe['vol_base']<-77)&
+                (dataframe['vol_base']<-80) &
                 (dataframe['rsi_fast'] < self.rsi_fast_buy.value) &
                 (dataframe['close'] < (dataframe[f'ma_buy_{self.base_nb_candles_buy.value}'] * self.low_offset_2.value)) &
                 (dataframe['EWO'] > self.ewo_high_2.value) &
@@ -359,8 +358,7 @@ class tesla4(IStrategy):
 
         dataframe.loc[
             (
-                (dataframe['vol_base']>-96)&
-                (dataframe['vol_base']> -20)&
+                (dataframe['vol_base']>-20) &
                 (dataframe['rsi_fast'] < self.rsi_fast_buy.value) &
                 (dataframe['close'] < (dataframe[f'ma_buy_{self.base_nb_candles_buy.value}'] * self.low_offset.value)) &
                 (dataframe['EWO'] > self.ewo_high.value) &
@@ -373,8 +371,7 @@ class tesla4(IStrategy):
 
         dataframe.loc[
             (
-                (dataframe['vol_base']>-96)&
-                (dataframe['vol_base']<-77)&
+                (dataframe['vol_base']<-80) &
                 (dataframe['rsi_fast'] < self.rsi_fast_buy.value) &
                 (dataframe['close'] < (dataframe[f'ma_buy_{self.base_nb_candles_buy.value}'] * self.low_offset.value)) &
                 (dataframe['EWO'] < self.ewo_low.value) &
@@ -458,4 +455,3 @@ class tesla4(IStrategy):
             ]=1
 
         return dataframe
-
