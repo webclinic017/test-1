@@ -462,4 +462,3 @@ class tesla4(IStrategy):
             ]=1
 
         return dataframe
-
