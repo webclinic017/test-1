@@ -53,7 +53,7 @@ def EWO(dataframe, ema_length=5, ema2_length=35):
     return emadif
 
 
-class Tesla7(IStrategy):
+class tesla7(IStrategy):
     INTERFACE_VERSION = 2
 
     # ROI table:
@@ -96,8 +96,8 @@ class Tesla7(IStrategy):
 
     # Trailing stop:
     trailing_stop = True
-    trailing_stop_positive = 0.005
-    trailing_stop_positive_offset = 0.025
+    trailing_stop_positive = 0.001
+    trailing_stop_positive_offset = 0.016
     trailing_only_offset_is_reached = True
 
     # Sell signal
@@ -175,6 +175,13 @@ class Tesla7(IStrategy):
         dataframe['bbdelta'] = (bb_40['mid'] - dataframe['lower']).abs()
         dataframe['closedelta'] = (dataframe['close'] - dataframe['close'].shift()).abs()
         dataframe['tail'] = (dataframe['close'] - dataframe['low']).abs()
+        # strategy ClucMay72018
+        bollinger = qtpylib.bollinger_bands(qtpylib.typical_price(dataframe), window=20, stds=2)
+        dataframe['bb_lowerband'] = bollinger['lower']
+        dataframe['bb_middleband'] = bollinger['mid']
+        dataframe['bb_upperband'] = bollinger['upper']
+        dataframe['ema_slow'] = ta.EMA(dataframe, timeperiod=50)
+        dataframe['volume_mean_slow'] = dataframe['volume'].rolling(window=30).mean()
         # RSI
         dataframe['rsi'] = ta.RSI(dataframe, timeperiod=14)
         dataframe['rsi_fast'] = ta.RSI(dataframe, timeperiod=4)
