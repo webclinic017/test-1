@@ -202,7 +202,7 @@ class tesla7(IStrategy):
     
         dataframe.loc[
         (
-                (dataframe['vol_base']>-96)&    
+                (dataframe['vol_base']>-90)&    
                 (dataframe['vol_base']<-77)&
                 (dataframe['rsi_fast'] <35)&
                 (dataframe['close'] < (dataframe[f'ma_buy_{self.base_nb_candles_buy.value}'] * self.low_offset.value)) &
