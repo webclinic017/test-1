@@ -128,9 +128,9 @@ class NFIV8_SMA(IStrategy):
     # Optional order type mapping.
     order_types = {
         'buy': 'limit',
-        'sell': 'limit',
-        'trailing_stop_loss': 'limit',
-        'stoploss': 'limit',
+        'sell': 'market',
+        'trailing_stop_loss': 'market',
+        'stoploss': 'market',
         'stoploss_on_exchange': False
     }
 
